@@ -8,4 +8,6 @@ Keras CNN B&W Google Colab: https://colab.research.google.com/drive/1sHYAuCDxZG0
 
 Datasets: https://drive.google.com/open?id=1MUD5zprRPahTM7VTC8RH9x-zzW9Cvndg
 
+Diagram: https://docs.google.com/presentation/d/1DlgR7MrCtCe2qrYw-_iVUDgHie3YBrh79MdZsG8VScg/edit?usp=sharing
+
 ![alt text](https://github.com/mocialov/HandshapeRecogniser/raw/master/images/HandshapeRecogniser2.png)
