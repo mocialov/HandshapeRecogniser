@@ -1,0 +1,6 @@
+for f in /home/bm4/tegnsprog/*.mp4 ;
+  do
+  SUBSTRING=$(echo $f| cut -d'/' -f 5 | cut -d'.' -f 1) ;
+  mkdir /home/bm4/tegnsprog_frames/"$SUBSTRING"
+  ffmpeg -i "$f" /home/bm4/tegnsprog_frames/"$SUBSTRING"/frame%04d.png -hide_banner ;
+done
