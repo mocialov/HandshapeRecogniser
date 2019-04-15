@@ -20,19 +20,9 @@ from shutil import copyfile
 from random import shuffle
 import csv
 
-openpose_keypoints = ["radius_x","radius_y","radius_c","scaphoid_x","scaphoid_y","scaphoid_c","thumb_trapezium_x","thumb_trapezium_y"
-,"thumb_trapezium_c","thumb_metacarpal_x","thumb_metacarpal_y","thumb_metacarpal_c","thumb_phalange_x","thumb_phalange_y","thumb_phal
-ange_c","index_trapezium_x","index_trapezium_y","index_trapezium_c","index_metacarpal_x","index_metacarpal_y","index_metacarpal_c","i
-ndex_proximal_x","index_proximal_y","index_proximal_c","index_phalange_x","index_phalange_y","index_phalange_c","middle_trapezium_x",
-"middle_trapezium_y","middle_trapezium_c","middle_metacarpal_x","middle_metacarpal_y","middle_metacarpal_c","middle_proximal_x","midd
-le_proximal_y","middle_proximal_c","middle_phalange_x","middle_phalange_y","middle_phalange_c","ring_trapezium_x","ring_trapezium_y",
-"ring_trapezium_c","ring_metacarpal_x","ring_metacarpal_y","ring_metacarpal_c","ring_proximal_x","ring_proximal_y","ring_proximal_c",
-"ring_phalange_x","ring_phalange_y","ring_phalange_c","little_trapezium_x","little_trapezium_y","little_trapezium_c","little_metacarp
-al_x","little_metacarpal_y","little_metacarpal_c","little_proximal_x","little_proximal_y","little_proximal_c","little_phalange_x","li
-ttle_phalange_y","little_phalange_c"]
+openpose_keypoints = ["radius_x","radius_y","radius_c","scaphoid_x","scaphoid_y","scaphoid_c","thumb_trapezium_x","thumb_trapezium_y","thumb_trapezium_c","thumb_metacarpal_x","thumb_metacarpal_y","thumb_metacarpal_c","thumb_phalange_x","thumb_phalange_y","thumb_phalange_c","index_trapezium_x","index_trapezium_y","index_trapezium_c","index_metacarpal_x","index_metacarpal_y","index_metacarpal_c","index_proximal_x","index_proximal_y","index_proximal_c","index_phalange_x","index_phalange_y","index_phalange_c","middle_trapezium_x","middle_trapezium_y","middle_trapezium_c","middle_metacarpal_x","middle_metacarpal_y","middle_metacarpal_c","middle_proximal_x","middle_proximal_y","middle_proximal_c","middle_phalange_x","middle_phalange_y","middle_phalange_c","ring_trapezium_x","ring_trapezium_y","ring_trapezium_c","ring_metacarpal_x","ring_metacarpal_y","ring_metacarpal_c","ring_proximal_x","ring_proximal_y","ring_proximal_c","ring_phalange_x","ring_phalange_y","ring_phalange_c","little_trapezium_x","little_trapezium_y","little_trapezium_c","little_metacarpal_x","little_metacarpal_y","little_metacarpal_c","little_proximal_x","little_proximal_y","little_proximal_c","little_phalange_x","little_phalange_y","little_phalange_c"]
 
-openpose_keypoints_connections = [(0,1), (1,2), (2,3), (3,4), (0,5), (5,6), (6,7), (7,8), (0,9), (9,10), (10,11), (11,12), (0,13), (1
-3,14), (14,15), (15,16), (0,17), (17,18), (18,19), (19,20)]
+openpose_keypoints_connections = [(0,1), (1,2), (2,3), (3,4), (0,5), (5,6), (6,7), (7,8), (0,9), (9,10), (10,11), (11,12), (0,13), (13,14), (14,15), (15,16), (0,17), (17,18), (18,19), (19,20)]
 
 both_hands_signtype = ["2-h\xc3\xa5nd paralel", "2-h\xc3\xa5nd spejlsymetrisk", "2-h\xc3\xa5nd punktsymetrisk"]
 
@@ -45,7 +35,7 @@ graphs_per_page = 9 #must be sqrtable
 bucket_size = 10
 total_buckets = 10
 frame_size_wh = (720,576)
-exec_option=6
+exec_option=7
 
 '''
 1 - collect all json files from the openpose, sort them after the frame number and save as speeds_barchart.pickle
@@ -99,8 +89,7 @@ def autolabel(rects, frames, folder_idx):
     """
     for idx, rect in enumerate(rects):
         height = rect.get_height()
-        ax[folder_idx / int(math.sqrt(graphs_per_page)), folder_idx % int(math.sqrt(graphs_per_page))].text(rect.get_x() + rect.get_w
-idth()/2., 1.05*height,
+        ax[folder_idx / int(math.sqrt(graphs_per_page)), folder_idx % int(math.sqrt(graphs_per_page))].text(rect.get_x() + rect.get_width()/2., 1.05*height,
                 '%s' % '\n'.join(frames[idx]),
                 ha='center', va='bottom', fontsize=6)
 
@@ -168,18 +157,13 @@ if os.path.isfile("speeds_barchart.pickle") and exec_option==2:
                 for window_idx in range(0, window_size):
                     with open(a_folder+"/"+a_file.replace(a_file.split("-")[1].split("_")[0], str(int(a_file.split("-")[1].split("_")
 [0])+window_idx))) as f:
-                        #print "opening file", a_folder+"/"+a_file.replace(a_file.split("-")[1].split("_")[0], str(int(a_file.split("
--")[1].split("_")[0])+window_idx))
+                        #print "opening file", a_folder+"/"+a_file.replace(a_file.split("-")[1].split("_")[0], str(int(a_file.split("-")[1].split("_")[0])+window_idx))
                         data = json.load(f)
-                        if centeroidpython(data["people"][0]["hand_right_keypoints_2d"]).count(centeroidpython(data["people"][0]["han
-d_right_keypoints_2d"])[0]) != len(centeroidpython(data["people"][0]["hand_right_keypoints_2d"])) and centeroidpython(data["people"][
-0]["hand_right_keypoints_2d"])[0] != 0:
+                        if centeroidpython(data["people"][0]["hand_right_keypoints_2d"]).count(centeroidpython(data["people"][0]["hand_right_keypoints_2d"])[0]) != len(centeroidpython(data["people"][0]["hand_right_keypoints_2d"])) and centeroidpython(data["people"][0]["hand_right_keypoints_2d"])[0] != 0:
                             right_hand_centroid = centeroidpython(data["people"][0]["hand_right_keypoints_2d"])
                             right_hand_window_centroids.append(right_hand_centroid)
                         #print data["people"][0]["hand_left_keypoints_2d"]
-                        if centeroidpython(data["people"][0]["hand_left_keypoints_2d"]).count(centeroidpython(data["people"][0]["hand
-_left_keypoints_2d"])[0]) != len(centeroidpython(data["people"][0]["hand_left_keypoints_2d"])) and centeroidpython(data["people"][0][
-"hand_left_keypoints_2d"])[0] != 0:
+                        if centeroidpython(data["people"][0]["hand_left_keypoints_2d"]).count(centeroidpython(data["people"][0]["hand_left_keypoints_2d"])[0]) != len(centeroidpython(data["people"][0]["hand_left_keypoints_2d"])) and centeroidpython(data["people"][0]["hand_left_keypoints_2d"])[0] != 0:
                             left_hand_centroid = centeroidpython(data["people"][0]["hand_left_keypoints_2d"])
                             left_hand_window_centroids.append(left_hand_centroid)
 
@@ -208,12 +192,10 @@ _left_keypoints_2d"])[0]) != len(centeroidpython(data["people"][0]["hand_left_ke
                     hands_distance_max = max(right_hand_distance, left_hand_distance)
 
                     if last_point != None:
-                        find_slope = linregress([last_point[0], int(a_file.split("-")[1].split("_")[0])], [last_point[1], int(hands_d
-istance_max)])
+                        find_slope = linregress([last_point[0], int(a_file.split("-")[1].split("_")[0])], [last_point[1], int(hands_distance_max)])
                         #print "slope", find_slope.slope, "for frame", a_file.split("-")[1].split("_")[0]
                     #print "distance", hands_distance_max, "for file", a_file
-                    both_hands_distances_traveled_per_sign.append((str(int(a_file.split("-")[1].split("_")[0])),int(hands_distance_ma
-x)))
+                    both_hands_distances_traveled_per_sign.append((str(int(a_file.split("-")[1].split("_")[0])),int(hands_distance_max)))
                     last_point = (int(a_file.split("-")[1].split("_")[0]),int(hands_distance_max))
 
 
@@ -224,8 +206,7 @@ x)))
         if True:#else:
             #print "setting a graph"
             #print "before"
-            distances_bucket_counter = [ [0,[]] for x in range( total_buckets ) ] #[[0,[]]]*10#,[0,[]],[0,[]],[0,[]],[0,[]],[0,[]],[0
-,[]],[0,[]],[0,[]],[0,[]]]
+            distances_bucket_counter = [ [0,[]] for x in range( total_buckets ) ] #[[0,[]]]*10#,[0,[]],[0,[]],[0,[]],[0,[]],[0,[]],[0,[]],[0,[]],[0,[]],[0,[]]]
             for file_distance in both_hands_distances_traveled_per_sign:
                 counter_position = file_distance[1] / bucket_size
                 if counter_position > (total_buckets-1): counter_position=total_buckets-1
@@ -238,23 +219,15 @@ x)))
             indexes = np.arange(len(distances_bucket_counter))
             width = 1
 
-            #print "graph_index", graph_index, "add to", graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(g
-raphs_per_page))
-            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].plot([i[0] for i in bot
-h_hands_distances_traveled_per_sign], [i[1]/bucket_size if i[1]/bucket_size < total_buckets-1 else total_buckets-1 for i in both_hand
-s_distances_traveled_per_sign])#bar(indexes+0.35, [i[0] for i in distances_bucket_counter], 0.35)
-            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].set_xticks(indexes + wi
-dth * 0.5)
+            #print "graph_index", graph_index, "add to", graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))
+            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].plot([i[0] for i in both_hands_distances_traveled_per_sign], [i[1]/bucket_size if i[1]/bucket_size < total_buckets-1 else total_buckets-1 for i in both_hands_distances_traveled_per_sign])#bar(indexes+0.35, [i[0] for i in distances_bucket_counter], 0.35)
+            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].set_xticks(indexes + width * 0.5)
             #x_tick_labels=[str(x*bucket_size)+"-"+str(x*bucket_size+bucket_size) for x in range(total_buckets)]
-            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].set_xticklabels(x_tick_
-labels, rotation='vertical')
-            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].set_title(a_folder.spli
-t("/")[-1], fontdict={'fontsize': 6})
+            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].set_xticklabels(x_tick_labels, rotation='vertical')
+            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].set_title(a_folder.split("/")[-1], fontdict={'fontsize': 6})
 
-            slope_up_search = [(i[0],i[1]/bucket_size) if i[1]/bucket_size < total_buckets-1 else (i[0],total_buckets-1) for i in bot
-h_hands_distances_traveled_per_sign]
-            slope_down_search = [(i[0],i[1]/bucket_size) if i[1]/bucket_size < total_buckets-1 else (i[0],total_buckets-1) for i in b
-oth_hands_distances_traveled_per_sign]
+            slope_up_search = [(i[0],i[1]/bucket_size) if i[1]/bucket_size < total_buckets-1 else (i[0],total_buckets-1) for i in both_hands_distances_traveled_per_sign]
+            slope_down_search = [(i[0],i[1]/bucket_size) if i[1]/bucket_size < total_buckets-1 else (i[0],total_buckets-1) for i in both_hands_distances_traveled_per_sign]
 
             #print slope_up_search
             if len(slope_up_search) < 3:
@@ -264,8 +237,7 @@ oth_hands_distances_traveled_per_sign]
             slope_down_search = slope_down_search[int(len(slope_down_search)//1.5):]
             slope_up_max = max(slope_up_search,key=itemgetter(1))
             slope_down_min = max(slope_down_search,key=itemgetter(1))
-            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].plot([slope_up_max[0],s
-lope_down_min[0]], [slope_up_max[1],slope_down_min[1]], 'ro')
+            #ax[graph_index / int(math.sqrt(graphs_per_page)), graph_index % int(math.sqrt(graphs_per_page))].plot([slope_up_max[0],slope_down_min[0]], [slope_up_max[1],slope_down_min[1]], 'ro')
 
             #print "cut at frames", int(slope_up_max[0]), "and", int(slope_down_min[0])
             #plt.show()
@@ -315,8 +287,7 @@ if os.path.isfile("speeds_barchart.pickle") and os.path.isfile("speeds_barchart_
             new_image_left = np.zeros(shape=(frame_size_wh[1], frame_size_wh[0]))
 
             #print "landed on file", a_file
-            if True:#int(dir_files_dict[a_folder][-1].split("-")[1].split("_")[0]) >= int(a_file.split("-")[1].split("_")[0])+window_
-size:
+            if True:#int(dir_files_dict[a_folder][-1].split("-")[1].split("_")[0]) >= int(a_file.split("-")[1].split("_")[0])+window_size:
                 if int(a_file.split("-")[1].split("_")[0]) > int(frames_splits[0]) and int(a_file.split("-")[1].split("_")[0]) < int(
 frames_splits[1]): #True:#for window_idx in range(0, window_size):
                     #print "file", a_file
@@ -348,16 +319,12 @@ frames_splits[1]): #True:#for window_idx in range(0, window_size):
                                 for connections in openpose_keypoints_connections:
                                     if right_hand_idx == connections[0]:
                                         #print right_hand_idx, connections[1], "are connected"
-                                        #print [int(right_hand_point[0]), int(right_hand_chunks[connections[1]][0])], [int(right_hand
-_point[1]), int(right_hand_chunks[connections[1]][1])]
-                                        if int(right_hand_point[0]) != 0 and int(right_hand_chunks[connections[1]][0]) != 0 and int(r
-ight_hand_point[1]) != 0 and int(right_hand_chunks[connections[1]][1]) != 0:
-                                            line_points = get_line_between_2_points([int(right_hand_point[0]), int(right_hand_chunks[
-connections[1]][0])], [int(right_hand_point[1]), int(right_hand_chunks[connections[1]][1])], 20)
+                                        #print [int(right_hand_point[0]), int(right_hand_chunks[connections[1]][0])], [int(right_hand_point[1]), int(right_hand_chunks[connections[1]][1])]
+                                        if int(right_hand_point[0]) != 0 and int(right_hand_chunks[connections[1]][0]) != 0 and int(right_hand_point[1]) != 0 and int(right_hand_chunks[connections[1]][1]) != 0:
+                                            line_points = get_line_between_2_points([int(right_hand_point[0]), int(right_hand_chunks[connections[1]][0])], [int(right_hand_point[1]), int(right_hand_chunks[connections[1]][1])], 20)
                                             #print "line points", line_points
                                             for a_coordinate in line_points:
-                                                if len(new_image_right) > int(a_coordinate[1]) and len(new_image_right[0]) > int(a_co
-ordinate[0]):
+                                                if len(new_image_right) > int(a_coordinate[1]) and len(new_image_right[0]) > int(a_coordinate[0]):
                                                     new_image_right[int(a_coordinate[1])][int(a_coordinate[0])] = 1
 
 
@@ -365,18 +332,13 @@ ordinate[0]):
                                 for connections in openpose_keypoints_connections:
                                     if left_hand_idx == connections[0]:
                                         #print right_hand_idx, connections[1], "are connected"
-                                        #print [int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])], [int(left_hand_po
-int[1]), int(left_hand_chunks[connections[1]][1])]
-                                        if int(left_hand_point[0]) != 0 and int(left_hand_chunks[connections[1]][0]) != 0 and int(lef
-t_hand_point[1]) != 0 and int(left_hand_chunks[connections[1]][1]) != 0:
-                                            line_points = get_line_between_2_points([int(left_hand_point[0]), int(left_hand_chunks[co
-nnections[1]][0])], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])], 20)
+                                        #print [int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])]
+                                        if int(left_hand_point[0]) != 0 and int(left_hand_chunks[connections[1]][0]) != 0 and int(left_hand_point[1]) != 0 and int(left_hand_chunks[connections[1]][1]) != 0:
+                                            line_points = get_line_between_2_points([int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])], 20)
                                             #print "line points", line_points
-                                            #print "line between", [int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])
-], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])], "is", line_points
+                                            #print "line between", [int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])], "is", line_points
                                             for a_coordinate in line_points:
-                                                if len(new_image_left) > int(a_coordinate[1]) and len(new_image_left[0]) > int(a_coor
-dinate[0]):
+                                                if len(new_image_left) > int(a_coordinate[1]) and len(new_image_left[0]) > int(a_coordinate[0]):
                                                     new_image_left[int(a_coordinate[1])][int(a_coordinate[0])] = 1
 
 
@@ -392,8 +354,7 @@ dinate[0]):
                                         most_likely_window[0] = np.count_nonzero(window)
                                         most_likely_window[1] = window
                                 #resulting_ds[a_folder.split("/")[-1]][a_file.split("-")[1].split("_")[0]][1] = most_likely_window[1]
-                                scipy.misc.imsave('new_ds/'+a_folder.split("/")[-1]+"/right/"+a_file.split("-")[1].split("_")[0]+'.pn
-g', most_likely_window[1])
+                                scipy.misc.imsave('new_ds/'+a_folder.split("/")[-1]+"/right/"+a_file.split("-")[1].split("_")[0]+'.png', most_likely_window[1])
 
                             if np.count_nonzero(new_image_left) > 0:
                                 most_likely_window = [-1, None]
@@ -401,8 +362,7 @@ g', most_likely_window[1])
                                     if np.count_nonzero(window) > most_likely_window[0]:
                                         most_likely_window[0] = np.count_nonzero(window)
                                         most_likely_window[1] = window
-                                scipy.misc.imsave('new_ds/'+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png
-', most_likely_window[1])
+                                scipy.misc.imsave('new_ds/'+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png', most_likely_window[1])
 
 if exec_option==4:
     e = xml.etree.ElementTree.parse('tegnsprag/DTS_phonology.xml').getroot()
@@ -426,36 +386,30 @@ p(string.digits) in both_hands_signtype:
                 for an_entry in e.findall("Entry"):
                     #print an_entry.findall("SignVideo")[0].text
                     #print an_entry.findall("SignVideo")[0].text.split(".")[0], "==", dirpath.split("/")[-2]
-                    if an_entry.findall("SignVideo")[0].text != None and an_entry.findall("SignVideo")[0].text.split(".")[0] == dirpa
-th.split("/")[-2]:
+                    if an_entry.findall("SignVideo")[0].text != None and an_entry.findall("SignVideo")[0].text.split(".")[0] == dirpath.split("/")[-2]:
                         if len(an_entry.findall("Phonology")[0].findall("Seq")) == 1:
                             for a_seq in an_entry.findall("Phonology")[0].findall("Seq"):
                                 if not os.path.exists("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
                                     os.makedirs("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
 
                                 if len(a_seq.findall("SignType")) == 1:
-                                    if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('latin-1'))))
-).rstrip(string.digits) in both_hands_signtype:
+                                    if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('latin-1'))))).rstrip(string.digits) in both_hands_signtype:
                                         #both hands for this video
                                         #print "both hands", a_seq.findall("Handshape1")[0].text.encode("latin-1")
-                                        copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("
-latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                        copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
                                     elif a_seq.findall("SignType")[0].text.encode('latin-1') in one_hand_signtype:
                                         if len(a_seq.findall("HandshapeFinal")) > 0:
-                                            if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("HandshapeFinal
-")[0].text.encode("latin-1"):
+                                            if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("HandshapeFinal")[0].text.encode("latin-1"):
                                                 #both hands for this video
                                                 #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
                                                 if "right" in dirpath.split("/"):
                                                     #print "copy", filename, "from", dirpath
-                                                    copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].t
-ext.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                                    copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
                                         else:
                                             #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
                                             if "right" in dirpath.split("/"):
                                                 #print "copy", filename, "from", dirpath
-                                                copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.
-encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                                copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
 
 
 if exec_option==5:
@@ -533,13 +487,11 @@ if os.path.isfile("speeds_barchart.pickle") and exec_option==6:
                         #with open(json_dataset_filename+"_"+dirpath.split("_")[-2]+".txt", 'a') as file:
                         #    file.write(" "+dirpath.split("_")[-1]+"\n")
                         for an_entry in e.findall("Entry"):
-                            if an_entry.findall("SignVideo")[0].text != None and an_entry.findall("SignVideo")[0].text.split(".")[0] 
-== filename.split("_")[0]+"_"+filename.split("_")[1]:
+                            if an_entry.findall("SignVideo")[0].text != None and an_entry.findall("SignVideo")[0].text.split(".")[0] == filename.split("_")[0]+"_"+filename.split("_")[1]:
                                 if len(an_entry.findall("Phonology")[0].findall("Seq")) == 1:
                                     for a_seq in an_entry.findall("Phonology")[0].findall("Seq"):
                                         if len(a_seq.findall("SignType")) == 1:
-                                            if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('lati
-n-1'))))).rstrip(string.digits) in both_hands_signtype:
+                                            if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('latin-1'))))).rstrip(string.digits) in both_hands_signtype:
                                                 #both hands for this video
                                                 #print "both hands for", filename, a_folder
                                                 for a_json_file in dir_files_dict[a_folder]:
@@ -549,19 +501,14 @@ n-1'))))).rstrip(string.digits) in both_hands_signtype:
                                                             data = json.load(afile)
                                                             #print data["people"][0]["hand_right_keypoints_2d"]
                                                             #print data["people"][0]["hand_left_keypoints_2d"]
-                                                            if not csv_file_contains(json_dataset_filename+"_"+dirpath.split("/")[-2]
-+".txt", a_folder + "/" + a_json_file):
-                                                                with open(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt", 'a
-') as aafile:
-                                                                    aafile.write(a_folder+"/"+a_json_file+","+",".join(map(str, data[
-"people"][0]["hand_right_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
-                                                                    aafile.write(a_folder+"/"+a_json_file+","+",".join(map(str, data[
-"people"][0]["hand_left_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
+                                                            if not csv_file_contains(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt", a_folder + "/" + a_json_file):
+                                                                with open(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt", 'a') as aafile:
+                                                                    aafile.write(a_folder+"/"+a_json_file+","+",".join(map(str, data["people"][0]["hand_right_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
+                                                                    aafile.write(a_folder+"/"+a_json_file+","+",".join(map(str, data["people"][0]["hand_left_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
 
                                             elif a_seq.findall("SignType")[0].text.encode('latin-1') in one_hand_signtype:
                                                 if len(a_seq.findall("HandshapeFinal")) > 0:
-                                                    if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("Handsh
-apeFinal")[0].text.encode("latin-1"):
+                                                    if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("HandshapeFinal")[0].text.encode("latin-1"):
                                                         #FinalHandshape is present and it is the same as the starting handshape
                                                         for a_json_file in dir_files_dict[a_folder]:
                                                             if filename.split("_")[2] == a_json_file.split("-")[1].split("_")[0]:
@@ -569,12 +516,9 @@ apeFinal")[0].text.encode("latin-1"):
                                                                     #print "dominant hands for", filename, a_folder
                                                                     data = json.load(afile)
                                                                     #print data["people"][0]["hand_right_keypoints_2d"]
-                                                                    if not csv_file_contains(json_dataset_filename+"_"+dirpath.split(
-"/")[-2]+".txt", a_folder + "/" + a_json_file):
-                                                                        with open(json_dataset_filename+"_"+dirpath.split("/")[-2]+".
-txt", 'a') as aafile:
-                                                                            aafile.write(a_folder+"/"+a_json_file+","+",".join(map(st
-r, data["people"][0]["hand_right_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
+                                                                    if not csv_file_contains(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt", a_folder + "/" + a_json_file):
+                                                                        with open(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt", 'a') as aafile:
+                                                                            aafile.write(a_folder+"/"+a_json_file+","+",".join(map(str, data["people"][0]["hand_right_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
 
 
 
@@ -586,10 +530,17 @@ r, data["people"][0]["hand_right_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n
                                                                 #print "dominant hands for", filename, a_folder
                                                                 data = json.load(afile)
                                                                 #print data["people"][0]["hand_right_keypoints_2d"]
-                                                                if not csv_file_contains(json_dataset_filename+"_"+dirpath.split("/")
-[-2]+".txt", a_folder + "/" + a_json_file):
-                                                                    with open(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt"
-, 'a') as aafile:
-                                                                        aafile.write(a_folder+"/"+a_json_file+","+",".join(map(str, d
-ata["people"][0]["hand_right_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
+                                                                if not csv_file_contains(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt", a_folder + "/" + a_json_file):
+                                                                    with open(json_dataset_filename+"_"+dirpath.split("/")[-2]+".txt", 'a') as aafile:
+                                                                        aafile.write(a_folder+"/"+a_json_file+","+",".join(map(str, data["people"][0]["hand_right_keypoints_2d"]))+","+dirpath.split("/")[-1]+"\n")
+
+
+if os.path.isfile("speeds_barchart.pickle") and os.path.isfile("speeds_barchart_cutoff_points.pickle") and exec_option==7:
+    resulting_ds = {}
+
+    with open("speeds_barchart.pickle", "rb") as input_file:
+        dir_files_dict = pickle.load(input_file)
+
+    with open("speeds_barchart_cutoff_points.pickle", "rb") as input_file:
+        cut_off_points = pickle.load(input_file)
 
