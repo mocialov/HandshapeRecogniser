@@ -45,6 +45,7 @@ exec_option=7
 4 - looking up classes using the xml file and saving the new dataset with format class/folder_file_right|left.png
 5 - splitting dataset into training/validation/test
 6 - extract json ds with classes
+7 - extract raw images from the DS using the cut-off points from the black and white ds
 '''
 
 def csv_file_contains(filename, astring):
@@ -536,7 +537,11 @@ if os.path.isfile("speeds_barchart.pickle") and exec_option==6:
 
 
 if os.path.isfile("speeds_barchart.pickle") and os.path.isfile("speeds_barchart_cutoff_points.pickle") and exec_option==7:
+    original_frames_images_dataset_path = "original_frames_ds/"
+    
     resulting_ds = {}
+
+    e = xml.etree.ElementTree.parse('/home/bmocialov/tegnsprag/DTS_phonology.xml').getroot()
 
     with open("speeds_barchart.pickle", "rb") as input_file:
         dir_files_dict = pickle.load(input_file)
@@ -544,3 +549,68 @@ if os.path.isfile("speeds_barchart.pickle") and os.path.isfile("speeds_barchart_
     with open("speeds_barchart_cutoff_points.pickle", "rb") as input_file:
         cut_off_points = pickle.load(input_file)
 
+    #original frames at /home/bmocialov/tegnsprag_training_align_imgs/1-hand...
+
+    processed = []
+
+    for folder_idx, a_folder in enumerate(dir_files_dict):
+        #print "folder", a_folder
+
+        for (dirpath, dirnames, filenames) in os.walk("/home/bmocialov/tegnsprag_training_aligned_imgs"):
+            list_of_files = []
+            for filename in filenames:
+                if filename.endswith('.png'):
+                     #print filename
+                     if a_folder.split("/")[-1] == "_".join(filename.split("_")[0:2]):
+                         #print "found", a_folder, filename, dirpath
+
+                         if filename in processed: continue
+
+                         #save image with class name
+
+                         for an_entry in e.findall("Entry"):
+                             if an_entry.findall("SignVideo")[0].text != None and an_entry.findall("SignVideo")[0].text.split(".")[0] == filename.split("_")[0]+"_"+filename.split("_")[1]:
+                                 if len(an_entry.findall("Phonology")[0].findall("Seq")) == 1:
+                                     for a_seq in an_entry.findall("Phonology")[0].findall("Seq"):
+                                         if len(a_seq.findall("SignType")) == 1:
+                                             if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('latin-1'))))).rstrip(string.digits) in both_hands_signtype:
+                                                 #both hands for this video
+                                                 #print ("handshape1", a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+                                                 a_path = original_frames_images_dataset_path+a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                                 if not os.path.exists(a_path):
+                                                     os.makedirs(a_path)
+                                                 
+                                                 copyfile(dirpath+"/"+filename, a_path+"/"+filename)
+
+                                             elif a_seq.findall("SignType")[0].text.encode('latin-1') in one_hand_signtype:
+                                                 if len(a_seq.findall("HandshapeFinal")) > 0:
+                                                     if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("HandshapeFinal")[0].text.encode("latin-1"):
+                                                         #FinalHandshape is present and it is the same as the starting handshape
+                                                         #print ("handshape2", a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+                                                         a_path = original_frames_images_dataset_path+a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                                         if not os.path.exists(a_path):
+                                                             os.makedirs(a_path)
+
+                                                         copyfile(dirpath+"/"+filename, a_path+"/"+filename)
+
+
+                                                 else:
+                                                     #print ("handshape final does not exist", a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+                                                     a_path = original_frames_images_dataset_path+a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                                     if not os.path.exists(a_path):
+                                                         os.makedirs(a_path)
+
+                                                     copyfile(dirpath+"/"+filename, a_path+"/"+filename)
+                                             else:
+                                                 #final handshape is the same as the sarting handshape (no final handshape)
+                                                 #print ("handshape3", a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+                                                 a_path = original_frames_images_dataset_path+a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                                 if not os.path.exists(a_path):
+                                                     os.makedirs(a_path)
+
+                                                 copyfile(dirpath+"/"+filename, a_path+"/"+filename)
+
+                         processed.append(filename)
