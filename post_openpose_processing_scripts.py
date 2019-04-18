@@ -35,7 +35,7 @@ graphs_per_page = 9 #must be sqrtable
 bucket_size = 10
 total_buckets = 10
 frame_size_wh = (720,576)
-exec_option=7
+exec_option=4
 
 '''
 1 - collect all json files from the openpose, sort them after the frame number and save as speeds_barchart.pickle
@@ -366,7 +366,7 @@ frames_splits[1]): #True:#for window_idx in range(0, window_size):
                                 scipy.misc.imsave('new_ds/'+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png', most_likely_window[1])
 
 if exec_option==4:
-    e = xml.etree.ElementTree.parse('tegnsprag/DTS_phonology.xml').getroot()
+    e = xml.etree.ElementTree.parse('/home/bmocialov/tegnsprag/DTS_phonology.xml').getroot()
     '''for an_entry in e.findall("Entry"):
         print an_entry.findall("SignVideo")[0].text
         if len(an_entry.findall("Phonology")[0].findall("Seq")) == 1:
@@ -378,7 +378,7 @@ p(string.digits) in both_hands_signtype:
     print set(all_sign_types)
     asd'''
 
-    for (dirpath, dirnames, filenames) in os.walk("/home/bmocialov/new_ds"):
+    for (dirpath, dirnames, filenames) in os.walk("new_ds"):
         list_of_files = []
         for filename in filenames:
             if filename.endswith('.png'):
@@ -406,11 +406,16 @@ p(string.digits) in both_hands_signtype:
                                                 if "right" in dirpath.split("/"):
                                                     #print "copy", filename, "from", dirpath
                                                     copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+
                                         else:
-                                            #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
                                             if "right" in dirpath.split("/"):
-                                                #print "copy", filename, "from", dirpath
                                                 copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+
+                                    else:
+                                        #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                        if "right" in dirpath.split("/"):
+                                            #print "copy", filename, "from", dirpath
+                                            copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
 
 
 if exec_option==5:
