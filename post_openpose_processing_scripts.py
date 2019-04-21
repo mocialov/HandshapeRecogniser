@@ -35,7 +35,7 @@ graphs_per_page = 9 #must be sqrtable
 bucket_size = 10
 total_buckets = 10
 frame_size_wh = (720,576)
-exec_option=4
+exec_option=8
 
 '''
 1 - collect all json files from the openpose, sort them after the frame number and save as speeds_barchart.pickle
@@ -46,6 +46,7 @@ exec_option=4
 5 - splitting dataset into training/validation/test
 6 - extract json ds with classes
 7 - extract raw images from the DS using the cut-off points from the black and white ds
+8 - split raw images ds into training/validation/test
 '''
 
 def csv_file_contains(filename, astring):
@@ -388,43 +389,74 @@ p(string.digits) in both_hands_signtype:
                     #print an_entry.findall("SignVideo")[0].text
                     #print an_entry.findall("SignVideo")[0].text.split(".")[0], "==", dirpath.split("/")[-2]
                     if an_entry.findall("SignVideo")[0].text != None and an_entry.findall("SignVideo")[0].text.split(".")[0] == dirpath.split("/")[-2]:
+                        #print (an_entry.findall("SignVideo")[0].text.split(".")[0])
+
                         if len(an_entry.findall("Phonology")[0].findall("Seq")) == 1:
                             for a_seq in an_entry.findall("Phonology")[0].findall("Seq"):
-                                if not os.path.exists("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
-                                    os.makedirs("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+                                #if not os.path.exists("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
+                                #    os.makedirs("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
 
                                 if len(a_seq.findall("SignType")) == 1:
                                     if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('latin-1'))))).rstrip(string.digits) in both_hands_signtype:
                                         #both hands for this video
                                         #print "both hands", a_seq.findall("Handshape1")[0].text.encode("latin-1")
-                                        copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+
+                                        if not os.path.exists("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
+                                            os.makedirs("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+
+                                        if os.path.isfile(dirpath+"/"+filename):
+                                            copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                        #print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+
                                     elif a_seq.findall("SignType")[0].text.encode('latin-1') in one_hand_signtype:
-                                        if len(a_seq.findall("HandshapeFinal")) > 0:
-                                            if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("HandshapeFinal")[0].text.encode("latin-1"):
-                                                #both hands for this video
+                                        if len(a_seq.findall("Handshape1")) > 0:
+                                            if True:#if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("Handshape2")[0].text.encode("latin-1"):
+
+                                                if not os.path.exists("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
+                                                    os.makedirs("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+                                                #one hand for this video
                                                 #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
                                                 if "right" in dirpath.split("/"):
                                                     #print "copy", filename, "from", dirpath
-                                                    copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                                    if os.path.isfile(dirpath+"/"+filename):
+                                                        copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                                    #print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+                                        if len(a_seq.findall("Handshape2")) > 0:
 
-                                        else:
-                                            if "right" in dirpath.split("/"):
-                                                copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                            if not os.path.exists("new_ds_classes/"+a_seq.findall("Handshape2")[0].text.encode("latin-1")):
+                                                os.makedirs("new_ds_classes/"+a_seq.findall("Handshape2")[0].text.encode("latin-1"))
 
-                                    else:
-                                        #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
-                                        if "right" in dirpath.split("/"):
-                                            #print "copy", filename, "from", dirpath
-                                            copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+
+                                            if "left" in dirpath.split("/"):
+                                                #print ("class", a_seq.findall("Handshape2")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+                                                if os.path.isfile(dirpath+"/"+filename):
+                                                    copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape2")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+
+                                        #else:
+                                        #    if "right" in dirpath.split("/"):
+                                        #        #copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                        #        print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+
+                                    #else:
+                                    #    #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                    #    if "right" in dirpath.split("/"):
+                                    #        #print "copy", filename, "from", dirpath
+                                    #        #copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                    #        print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
 
 
 if exec_option==5:
+    old_ds_path = "new_ds_classes"
+    new_ds_path = "shuffled_split_bw_images"
+
     old_ds = {}
     new_ds_overall = {}
     new_ds_training = {}
     new_ds_validation = {}
     new_ds_testing = {}
-    for (dirpath, dirnames, filenames) in os.walk("/home/bmocialov/new_ds_classes/"):
+    for (dirpath, dirnames, filenames) in os.walk(old_ds_path):
         list_of_files = []
         old_ds[dirpath.split("/")[-1]] = []
         for filename in filenames:
@@ -453,23 +485,23 @@ if exec_option==5:
 
     #saving
     for a_class in new_ds_training:
-        if not os.path.exists("new_ds_classes_split/training/"+a_class):
-            os.makedirs("new_ds_classes_split/training/"+a_class)
+        if not os.path.exists(new_ds_path+"/training/"+a_class):
+            os.makedirs(new_ds_path+"/training/"+a_class)
         for a_file in new_ds_training[a_class]:
             #print "from", a_file, "to", "new_ds_classes_split/training/"+a_class+"/"+a_file.split("/")[-1]
-            copyfile(a_file, "new_ds_classes_split/training/"+a_class+"/"+a_file.split("/")[-1])
+            copyfile(a_file, new_ds_path+"/training/"+a_class+"/"+a_file.split("/")[-1])
 
     for a_class in new_ds_validation:
-        if not os.path.exists("new_ds_classes_split/validation/"+a_class):
-            os.makedirs("new_ds_classes_split/validation/"+a_class)
+        if not os.path.exists(new_ds_path+"/validation/"+a_class):
+            os.makedirs(new_ds_path+"/validation/"+a_class)
         for a_file in new_ds_validation[a_class]:
-            copyfile(a_file, "new_ds_classes_split/validation/"+a_class+"/"+a_file.split("/")[-1])
+            copyfile(a_file, new_ds_path+"/validation/"+a_class+"/"+a_file.split("/")[-1])
     
     for a_class in new_ds_testing:
-        if not os.path.exists("new_ds_classes_split/testing/"+a_class):
-            os.makedirs("new_ds_classes_split/testing/"+a_class)
+        if not os.path.exists(new_ds_path+"/testing/"+a_class):
+            os.makedirs(new_ds_path+"/testing/"+a_class)
         for a_file in new_ds_testing[a_class]:
-            copyfile(a_file, "new_ds_classes_split/testing/"+a_class+"/"+a_file.split("/")[-1])
+            copyfile(a_file, new_ds_path+"/testing/"+a_class+"/"+a_file.split("/")[-1])
 
 json_dataset_filename = "json_dataset"
 if os.path.isfile("speeds_barchart.pickle") and exec_option==6:
@@ -619,3 +651,60 @@ if os.path.isfile("speeds_barchart.pickle") and os.path.isfile("speeds_barchart_
                                                  copyfile(dirpath+"/"+filename, a_path+"/"+filename)
 
                          processed.append(filename)
+
+if exec_option==8:
+    old_ds_path = "original_frames_ds"
+    new_ds_path = "shuffled_split_original_frames_ds"
+
+    old_ds = {}
+    new_ds_overall = {}
+    new_ds_training = {}
+    new_ds_validation = {}
+    new_ds_testing = {}
+    for (dirpath, dirnames, filenames) in os.walk(old_ds_path):
+        list_of_files = []
+        old_ds[dirpath.split("/")[-1]] = []
+        for filename in filenames:
+            if filename.endswith('.png'):
+                #print "dir, file", dirpath, filename
+                old_ds[dirpath.split("/")[-1]].append(dirpath+"/"+filename)
+        #print ("old ds class", dirpath.split("/")[-1], "size", len(old_ds[dirpath.split("/")[-1]]))
+
+    for a_class in old_ds:
+        shuffle(old_ds[a_class])
+        new_ds_overall[a_class] = old_ds[a_class]
+        #print ("overall shuffled ds class", a_class, "size", len(new_ds_overall[a_class]))
+    
+    for a_class in new_ds_overall:
+        if a_class != '':
+            new_ds_training[a_class] = new_ds_overall[a_class][:int(int(len(new_ds_overall[a_class])) * .67)]
+            new_ds_testing[a_class] = new_ds_overall[a_class][int(int(len(new_ds_overall[a_class])) * .67):]
+            #print ("training ds class", a_class, "size", len(new_ds_training[a_class]))
+
+    for a_class in new_ds_testing:
+        if a_class != '':
+            new_ds_validation[a_class] = new_ds_testing[a_class][:int(int(len(new_ds_testing[a_class])) * .5)]
+            new_ds_testing[a_class] = new_ds_testing[a_class][int(int(len(new_ds_testing[a_class])) * .5):]
+            #print ("validation ds class", a_class, "size", len(new_ds_validation[a_class]))
+            #print ("testing ds class", a_class, "size", len(new_ds_testing[a_class]))
+
+    #saving
+    for a_class in new_ds_training:
+        if not os.path.exists(new_ds_path+"/training/"+a_class):
+            os.makedirs(new_ds_path+"/training/"+a_class)
+        for a_file in new_ds_training[a_class]:
+            #print "from", a_file, "to", "new_ds_classes_split/training/"+a_class+"/"+a_file.split("/")[-1]
+            copyfile(a_file, new_ds_path+"/training/"+a_class+"/"+a_file.split("/")[-1])
+
+    for a_class in new_ds_validation:
+        if not os.path.exists(new_ds_path+"/validation/"+a_class):
+            os.makedirs(new_ds_path+"/validation/"+a_class)
+        for a_file in new_ds_validation[a_class]:
+            copyfile(a_file, new_ds_path+"/validation/"+a_class+"/"+a_file.split("/")[-1])
+    
+    for a_class in new_ds_testing:
+        if not os.path.exists(new_ds_path+"/testing/"+a_class):
+            os.makedirs(new_ds_path+"/testing/"+a_class)
+        for a_file in new_ds_testing[a_class]:
+            copyfile(a_file, new_ds_path+"/testing/"+a_class+"/"+a_file.split("/")[-1])
+
