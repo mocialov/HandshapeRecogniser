@@ -19,6 +19,8 @@ import string
 from shutil import copyfile
 from random import shuffle
 import csv
+import cv2
+from PIL import Image
 
 openpose_keypoints = ["radius_x","radius_y","radius_c","scaphoid_x","scaphoid_y","scaphoid_c","thumb_trapezium_x","thumb_trapezium_y","thumb_trapezium_c","thumb_metacarpal_x","thumb_metacarpal_y","thumb_metacarpal_c","thumb_phalange_x","thumb_phalange_y","thumb_phalange_c","index_trapezium_x","index_trapezium_y","index_trapezium_c","index_metacarpal_x","index_metacarpal_y","index_metacarpal_c","index_proximal_x","index_proximal_y","index_proximal_c","index_phalange_x","index_phalange_y","index_phalange_c","middle_trapezium_x","middle_trapezium_y","middle_trapezium_c","middle_metacarpal_x","middle_metacarpal_y","middle_metacarpal_c","middle_proximal_x","middle_proximal_y","middle_proximal_c","middle_phalange_x","middle_phalange_y","middle_phalange_c","ring_trapezium_x","ring_trapezium_y","ring_trapezium_c","ring_metacarpal_x","ring_metacarpal_y","ring_metacarpal_c","ring_proximal_x","ring_proximal_y","ring_proximal_c","ring_phalange_x","ring_phalange_y","ring_phalange_c","little_trapezium_x","little_trapezium_y","little_trapezium_c","little_metacarpal_x","little_metacarpal_y","little_metacarpal_c","little_proximal_x","little_proximal_y","little_proximal_c","little_phalange_x","little_phalange_y","little_phalange_c"]
 
@@ -513,7 +515,7 @@ if os.path.isfile("speeds_barchart.pickle") and exec_option==6:
     for folder_idx, a_folder in enumerate(dir_files_dict):
         #print a_folder, dir_files_dict[a_folder]  #json file names mapping[folder]=files_frame#
 
-        for (dirpath, dirnames, filenames) in os.walk("/home/bmocialov/new_ds_classes_split"):
+        for (dirpath, dirnames, filenames) in os.walk("new_ds_classes"):
             list_of_files = []
             for filename in filenames:
                 if filename.endswith('.png'):
@@ -653,8 +655,8 @@ if os.path.isfile("speeds_barchart.pickle") and os.path.isfile("speeds_barchart_
                          processed.append(filename)
 
 if exec_option==8:
-    old_ds_path = "original_frames_ds"
-    new_ds_path = "shuffled_split_original_frames_ds"
+    old_ds_path = "raw_ds_cropped_classes"
+    new_ds_path = "shuffled_split_raw_ds_cropped_classes"
 
     old_ds = {}
     new_ds_overall = {}
@@ -707,4 +709,264 @@ if exec_option==8:
             os.makedirs(new_ds_path+"/testing/"+a_class)
         for a_file in new_ds_testing[a_class]:
             copyfile(a_file, new_ds_path+"/testing/"+a_class+"/"+a_file.split("/")[-1])
+
+
+###############
+
+if os.path.isfile("speeds_barchart.pickle") and os.path.isfile("speeds_barchart_cutoff_points.pickle") and exec_option==9:
+    ds_destination_path = "raw_ds_cropped"
+
+    resulting_ds = {}
+
+    with open("speeds_barchart.pickle", "rb") as input_file:
+        dir_files_dict = pickle.load(input_file)
+
+    with open("speeds_barchart_cutoff_points.pickle", "rb") as input_file:
+        cut_off_points = pickle.load(input_file)
+
+    for folder_idx, a_folder in enumerate(dir_files_dict):
+        print "folder", a_folder
+
+        resulting_ds[a_folder.split("/")[-1]] = {}
+        #if folder_idx > graphs_per_page+1: continue #temporary
+
+        #new_image = np.zeros(shape=(frame_size_wh[1], frame_size_wh[0]))
+
+        frames_splits = [-1,-1]
+        if a_folder.split("/")[-1] in cut_off_points:
+            if True:#if a_file.split("-")[1].split("_")[0] in cut_off_points[a_folder.split("/")[-1]]:
+                frames_splits[0] = cut_off_points[a_folder.split("/")[-1]][0]
+                frames_splits[1] = cut_off_points[a_folder.split("/")[-1]][1]
+
+        for idx, a_file in enumerate(dir_files_dict[a_folder]):
+
+            #if os.path.isfile(ds_destination_path+"/"+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png'):
+            #    continue
+            #if os.path.isfile(ds_destination_path+"/"+a_folder.split("/")[-1]+"/right/"+a_file.split("-")[1].split("_")[0]+'.png'):
+            #    continue
+
+
+            #if not os.path.exists('new_ds/'+a_folder.split("/")[-1]+"/left/"):
+            #    os.makedirs('new_ds/'+a_folder.split("/")[-1]+"/left/")
+            #if not os.path.exists('new_ds/'+a_folder.split("/")[-1]+"/right/"):
+            #    os.makedirs('new_ds/'+a_folder.split("/")[-1]+"/right/")
+
+
+            resulting_ds[a_folder.split("/")[-1]][a_file.split("-")[1].split("_")[0]] = [None, None]
+
+            new_image_right = np.zeros(shape=(frame_size_wh[1], frame_size_wh[0]))
+            new_image_left = np.zeros(shape=(frame_size_wh[1], frame_size_wh[0]))
+
+            #print "landed on file", a_file
+            if True:#int(dir_files_dict[a_folder][-1].split("-")[1].split("_")[0]) >= int(a_file.split("-")[1].split("_")[0])+window_size:
+                if int(a_file.split("-")[1].split("_")[0]) > int(frames_splits[0]) and int(a_file.split("-")[1].split("_")[0]) < int(frames_splits[1]): #True:#for window_idx in range(0, window_size):
+                    #print "file", a_file
+                    with open(a_folder+"/"+a_file) as f:
+                        data = json.load(f)
+
+
+                        k=3
+                        del data["people"][0]["hand_right_keypoints_2d"][k-1::k]
+                        del data["people"][0]["hand_left_keypoints_2d"][k-1::k]
+
+                        right_hand_chunks = list(chunks(data["people"][0]["hand_right_keypoints_2d"], 2))
+                        left_hand_chunks = list(chunks(data["people"][0]["hand_left_keypoints_2d"], 2))
+                        #print "right", right_hand_chunks
+                        #print "left", left_hand_chunks
+
+                        hand_outside_the_frame_boundaries = False
+                        for item in right_hand_chunks:
+                            if item[0] > frame_size_wh[0] or item[0] < 0 or item[1] > frame_size_wh[1] or item[1] < 0:
+                                hand_outside_the_frame_boundaries = True
+                        for item in left_hand_chunks:
+                            if item[0] > frame_size_wh[0] or item[0] < 0 or item[1] > frame_size_wh[1] or item[1] < 0: 
+                                hand_outside_the_frame_boundaries = True
+
+                        if not hand_outside_the_frame_boundaries:
+                            #print "file to save into the new DS", a_file
+
+                            for right_hand_idx, right_hand_point in enumerate(right_hand_chunks):
+                                for connections in openpose_keypoints_connections:
+                                    if right_hand_idx == connections[0]:
+                                        #print right_hand_idx, connections[1], "are connected"
+                                        #print [int(right_hand_point[0]), int(right_hand_chunks[connections[1]][0])], [int(right_hand_point[1]), int(right_hand_chunks[connections[1]][1])]
+                                        if int(right_hand_point[0]) != 0 and int(right_hand_chunks[connections[1]][0]) != 0 and int(right_hand_point[1]) != 0 and int(right_hand_chunks[connections[1]][1]) != 0:
+                                            #line_points = get_line_between_2_points([int(right_hand_point[0]), int(right_hand_chunks[connections[1]][0])], [int(right_hand_point[1]), int(right_hand_chunks[connections[1]][1])], 20)
+                                            #print "line points", line_points
+                                            if True:#for a_coordinate in line_points:
+                                                if len(new_image_right) > int(right_hand_point[1]) and len(new_image_right[0]) > int(right_hand_point[0]):
+                                                    #new_image_right[int(a_coordinate[1])][int(a_coordinate[0])] = 1
+                                                    new_image_right[int(right_hand_point[1]),int(right_hand_point[0])] = 1
+
+
+                            for left_hand_idx, left_hand_point in enumerate(left_hand_chunks):
+                                for connections in openpose_keypoints_connections:
+                                    if left_hand_idx == connections[0]:
+                                        #print right_hand_idx, connections[1], "are connected"
+                                        #print [int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])]
+                                        if int(left_hand_point[0]) != 0 and int(left_hand_chunks[connections[1]][0]) != 0 and int(left_hand_point[1]) != 0 and int(left_hand_chunks[connections[1]][1]) != 0:
+                                            #line_points = get_line_between_2_points([int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])], 20)
+                                            #print "line points", line_points
+                                            #print "line between", [int(left_hand_point[0]), int(left_hand_chunks[connections[1]][0])], [int(left_hand_point[1]), int(left_hand_chunks[connections[1]][1])], "is", line_points
+                                            if True:#for a_coordinate in line_points:
+                                                if len(new_image_left) > int(left_hand_point[1]) and len(new_image_left[0]) > int(left_hand_point[0]):
+                                                    new_image_left[int(left_hand_point[1])][int(left_hand_point[0])] = 1
+
+
+
+                            #if np.count_nonzero(new_image_right) > 0:
+                            #    resulting_ds[a_folder.split("/")[-1]][a_file.split("-")[1].split("_")[0]][0] = new_image_right
+                            #if np.count_nonzero(new_image_left) > 0:
+                            #    resulting_ds[a_folder.split("/")[-1]][a_file.split("-")[1].split("_")[0]][1] = new_image_left
+                            if np.count_nonzero(new_image_right) > 0:
+                                most_likely_window = [-1, None, -1, -1]
+                                for (x, y, window) in sliding_window(new_image_right, stepSize=32, windowSize=(128, 128)):
+                                    if np.count_nonzero(window) > most_likely_window[0]:
+                                        most_likely_window[0] = np.count_nonzero(window)
+                                        most_likely_window[1] = window
+                                        most_likely_window[2] = x
+                                        most_likely_window[3] = y
+                                #resulting_ds[a_folder.split("/")[-1]][a_file.split("-")[1].split("_")[0]][1] = most_likely_window[1]
+                                #scipy.misc.imsave('new_ds/'+a_folder.split("/")[-1]+"/right/"+a_file.split("-")[1].split("_")[0]+'.png', most_likely_window[1])
+
+                                for (dirpath, dirnames, filenames) in os.walk("/home/bmocialov/tegnsprag_training_aligned_imgs"):
+                                    for filename in filenames:
+                                        if filename.endswith('.png'):
+                                            if a_folder.split("/")[-1] == filename.split("_")[0]+"_"+filename.split("_")[1] and filename.split("-")[1].split(".")[0] == a_file.split("-")[1].split("_")[0]:
+
+                                                image_obj = Image.open(dirpath+"/"+filename)
+                                                cropped_image = image_obj.crop((most_likely_window[2], most_likely_window[3], most_likely_window[2]+128, most_likely_window[3]+128))
+
+                                                if not os.path.exists(ds_destination_path+"/"+a_folder.split("/")[-1]+"/right/"):
+                                                    os.makedirs(ds_destination_path+"/"+a_folder.split("/")[-1]+"/right/")
+
+
+                                                cropped_image.save(ds_destination_path+"/"+a_folder.split("/")[-1]+"/right/"+a_file.split("-")[1].split("_")[0]+'.png')
+
+
+
+                            if np.count_nonzero(new_image_left) > 0:
+                                most_likely_window = [-1, None, -1, -1]
+                                for (x, y, window) in sliding_window(new_image_left, stepSize=32, windowSize=(128,128)):
+                                    if np.count_nonzero(window) > most_likely_window[0]:
+                                        most_likely_window[0] = np.count_nonzero(window)
+                                        most_likely_window[1] = window
+                                        most_likely_window[2] = x
+                                        most_likely_window[3] = y
+                                #scipy.misc.imsave('new_ds/'+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png', most_likely_window[1])
+
+                                for (dirpath, dirnames, filenames) in os.walk("/home/bmocialov/tegnsprag_training_aligned_imgs"):
+                                    for filename in filenames:
+                                        if filename.endswith('.png'):
+                                            if a_folder.split("/")[-1] == filename.split("_")[0]+"_"+filename.split("_")[1] and filename.split("-")[1].split(".")[0] == a_file.split("-")[1].split("_")[0]:
+
+                                                image_obj = Image.open(dirpath+"/"+filename)
+                                                cropped_image = image_obj.crop((most_likely_window[2], most_likely_window[3], most_likely_window[2]+128, most_likely_window[3]+128))
+
+                                                if not os.path.exists(ds_destination_path+"/"+a_folder.split("/")[-1]+"/left/"):
+                                                    os.makedirs(ds_destination_path+"/"+a_folder.split("/")[-1]+"/left/")
+
+
+                                                cropped_image.save(ds_destination_path+"/"+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png')
+
+                                                #print "load image", dirpath+"/"+filename
+                                                #img = cv2.imread(dirpath+"/"+filename)
+                                                #crop_img = img[most_likely_window[3]:most_likely_window[3]+128, most_likely_window[2]:most_likely_window[2]+128]
+                                                #print ("saving to", ds_destination_path+"/"+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png')
+                                                #cv2.imwrite(ds_destination_path+"/"+a_folder.split("/")[-1]+"/left/"+a_file.split("-")[1].split("_")[0]+'.png', crop_img)
+
+
+
+
+
+
+
+
+
+
+
+if exec_option==10:
+
+    old_ds_path="raw_ds_cropped"
+    new_ds_path="raw_ds_cropped_classes"
+
+    e = xml.etree.ElementTree.parse('/home/bmocialov/tegnsprag/DTS_phonology.xml').getroot()
+    '''for an_entry in e.findall("Entry"):
+        print an_entry.findall("SignVideo")[0].text
+        if len(an_entry.findall("Phonology")[0].findall("Seq")) == 1:
+            for a_seq in an_entry.findall("Phonology")[0].findall("Seq"):
+                if len(a_seq.findall("SignType")) == 1:
+                    if True:#if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('latin-1'))))).rstri
+p(string.digits) in both_hands_signtype:
+                        all_sign_types.append(a_seq.findall("SignType")[0].text.encode("latin-1"))
+    print set(all_sign_types)
+    asd'''
+
+    for (dirpath, dirnames, filenames) in os.walk(old_ds_path):
+        list_of_files = []
+        for filename in filenames:
+            if filename.endswith('.png'):
+                #print dirpath, filename
+
+                for an_entry in e.findall("Entry"):
+                    #print an_entry.findall("SignVideo")[0].text
+                    #print an_entry.findall("SignVideo")[0].text.split(".")[0], "==", dirpath.split("/")[-2]
+                    if an_entry.findall("SignVideo")[0].text != None and an_entry.findall("SignVideo")[0].text.split(".")[0] == dirpath.split("/")[-2]:
+                        #print (an_entry.findall("SignVideo")[0].text.split(".")[0])
+
+                        if len(an_entry.findall("Phonology")[0].findall("Seq")) == 1:
+                            for a_seq in an_entry.findall("Phonology")[0].findall("Seq"):
+                                #if not os.path.exists("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
+                                #    os.makedirs("new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+                                if len(a_seq.findall("SignType")) == 1:
+                                    if "".join(map(itemgetter(0), groupby(list(a_seq.findall("SignType")[0].text.encode('latin-1'))))).rstrip(string.digits) in both_hands_signtype:
+                                        #both hands for this video
+                                        #print "both hands", a_seq.findall("Handshape1")[0].text.encode("latin-1")
+
+                                        if not os.path.exists(new_ds_path+"/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
+                                            os.makedirs(new_ds_path+"/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+
+                                        if os.path.isfile(dirpath+"/"+filename):
+                                            copyfile(dirpath+"/"+filename, new_ds_path+"/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                        #print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+
+                                    elif a_seq.findall("SignType")[0].text.encode('latin-1') in one_hand_signtype:
+                                        if len(a_seq.findall("Handshape1")) > 0:
+                                            if True:#if a_seq.findall("Handshape1")[0].text.encode("latin-1") == a_seq.findall("Handshape2")[0].text.encode("latin-1"):
+
+                                                if not os.path.exists(new_ds_path+"/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")):
+                                                    os.makedirs(new_ds_path+"/"+a_seq.findall("Handshape1")[0].text.encode("latin-1"))
+
+                                                #one hand for this video
+                                                #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                                if "right" in dirpath.split("/"):
+                                                    #print "copy", filename, "from", dirpath
+                                                    if os.path.isfile(dirpath+"/"+filename):
+                                                        copyfile(dirpath+"/"+filename, new_ds_path+"/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                                    #print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+                                        if len(a_seq.findall("Handshape2")) > 0:
+
+                                            if not os.path.exists(new_ds_path+"/"+a_seq.findall("Handshape2")[0].text.encode("latin-1")):
+                                                os.makedirs(new_ds_path+"/"+a_seq.findall("Handshape2")[0].text.encode("latin-1"))
+
+
+                                            if "left" in dirpath.split("/"):
+                                                #print ("class", a_seq.findall("Handshape2")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+                                                if os.path.isfile(dirpath+"/"+filename):
+                                                    copyfile(dirpath+"/"+filename, new_ds_path+"/"+a_seq.findall("Handshape2")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+
+                                        #else:
+                                        #    if "right" in dirpath.split("/"):
+                                        #        #copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                        #        print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+
+                                    #else:
+                                    #    #print "dominant hand", a_seq.findall("Handshape1")[0].text.encode("latin-1")
+                                    #    if "right" in dirpath.split("/"):
+                                    #        #print "copy", filename, "from", dirpath
+                                    #        #copyfile(dirpath+"/"+filename, "new_ds_classes/"+a_seq.findall("Handshape1")[0].text.encode("latin-1")+"/"+dirpath.split("/")[-2]+"_"+filename.split(".")[0]+"_"+dirpath.split("/")[-1]+".png")
+                                    #        print ("class", a_seq.findall("Handshape1")[0].text.encode("latin-1"), dirpath.split("/")[-1])
+
 
